@@ -44,6 +44,13 @@ export default defineConfig((mode: ConfigEnv) => {
     server: {
       port: +env.VITE_PORT,
       open: Boolean(env.VITE_OPEN),
+      proxy: {
+        "/app-dev": {
+          target: "http://gmall-h5-api.atguigu.cn",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/app-dev/, ""),
+        },
+      },
     },
   };
 });
