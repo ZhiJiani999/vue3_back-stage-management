@@ -1,10 +1,16 @@
 <template>
   <el-card>
-    <el-button type="primary" :icon="Plus" @click="showDialogFormVisible"
+    <el-button
+      type="primary"
+      :icon="Plus"
+      @click="showDialogFormVisible({ id: 0, tmName: '', logoUrl: '' })"
       >添加品牌</el-button
     >
 
-    <el-dialog v-model="dialogFormVisible" title="添加品牌">
+    <el-dialog
+      v-model="dialogFormVisible"
+      :title="`${trademarkFormData.id}` ? '修改品牌' : '添加品牌'"
+    >
       <el-form
         label-width="100px"
         ref="ruleFormRef"
@@ -42,7 +48,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogFormVisible = false">取消</el-button>
-          <el-button type="primary">确认</el-button>
+          <el-button type="primary" @click="notarizeForm">确认</el-button>
         </span>
       </template>
     </el-dialog>
@@ -61,13 +67,19 @@
           <el-image :src="row.logoUrl" fit="cover" class="trademark-img" />
         </template>
       </el-table-column>
-      <el-table-column label="Operations">
-        <template #default="scope">
-          <el-button size="small" type="warning" :icon="EditPen"></el-button>
+      <el-table-column label="操作">
+        <template v-slot="{ row }">
+          <el-button
+            size="small"
+            type="warning"
+            :icon="EditPen"
+            @click="showDialogFormVisible(row)"
+          ></el-button>
           <el-button
             size="small"
             type="danger"
             :icon="DeleteFilled"
+            @click="deleteFormData(row)"
           ></el-button>
         </template>
       </el-table-column>
@@ -97,27 +109,60 @@ export default {
 <script lang="ts" setup>
 import { Plus, EditPen, DeleteFilled } from "@element-plus/icons-vue";
 import { onMounted, ref, reactive } from "vue";
-import { getTradeMarkApi } from "@/api/trademark";
-import { ElMessage } from "element-plus";
+import {
+  getTradeMarkApi,
+  saveTradeMarkApi,
+  removeTradeMarkApi,
+  updateTradeMarkApi,
+} from "@/api/trademark";
+import { ElMessage, ElMessageBox } from "element-plus";
 import type { UploadProps, FormInstance, FormRules } from "element-plus";
+import type { TrademarkItem } from "@/api/product/model/trademarkModel";
 
 // 请求前缀
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 /***校验规则****/
-//表单数据
+// 表单数据
 const trademarkFormData = reactive({
   tmName: "",
   // 品牌logo
   logoUrl: "",
+  id: 0,
 });
-//表单实列
+// 表单实列
 const ruleFormRef = ref<FormInstance>();
-//验证规则
+// 验证规则
 const rules = reactive<FormRules>({
   tmName: [{ required: true, message: "请输入上传名称", trigger: "blur" }],
   logoUrl: [{ required: true, message: "请上传品牌LOGO" }],
 });
+
+//点击发送添加或者修改的请求
+const notarizeForm = async () => {
+  //校验表单
+  await ruleFormRef.value?.validate();
+  const { tmName, logoUrl, id } = trademarkFormData;
+  if (!id) {
+    await saveTradeMarkApi(tmName, logoUrl);
+  } else {
+    await updateTradeMarkApi({ id, tmName, logoUrl });
+  }
+
+  dialogFormVisible.value = false;
+  ElMessage.success(`${id ? "修改品牌" : "添加品牌"}`);
+  //更新数据
+  getTrademarkList();
+};
+
+//点击修改和添加
+const showDialogFormVisible = (row: TrademarkItem) => {
+  dialogFormVisible.value = true;
+  trademarkFormData.tmName = row.tmName;
+  trademarkFormData.logoUrl = row.logoUrl;
+  trademarkFormData.id = row.id;
+  ruleFormRef.value?.clearValidate();
+};
 
 /***添加品牌***/
 // const imageUrl = ref("");
@@ -169,8 +214,18 @@ onMounted(() => {
 /***加载框****/
 const dialogFormVisible = ref(false);
 
-const showDialogFormVisible = () => {
-  dialogFormVisible.value = true;
+/****删除品牌*****/
+const deleteFormData = (row: TrademarkItem) => {
+  ElMessageBox.confirm(`确认删除+${row.tmName}+吗`, "Warning", {
+    confirmButtonText: "确认",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(async () => {
+    const { id } = row;
+    await removeTradeMarkApi(id);
+    ElMessage.success("删除品牌成功");
+    getTrademarkList();
+  });
 };
 </script>
 
