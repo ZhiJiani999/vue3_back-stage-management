@@ -17,7 +17,7 @@ export default {
 </script>
 
 <script lang="ts" setup>
-import CategorySelector from "@/components/categorySele,ctor/index.vue";
+import CategorySelector from "@/components/categorySelector/index.vue";
 import AttrList from "./components/attr-list.vue";
 import AttrUpdateOrAdd from "./components/attrupdateoradd.vue";
 import { ref } from "vue";

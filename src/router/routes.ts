@@ -45,7 +45,6 @@ export const staticRoutes: Array<RouteRecordRaw> = [
           icon: "ele-HomeFilled",
         },
       },
-     
     ],
   },
   {
