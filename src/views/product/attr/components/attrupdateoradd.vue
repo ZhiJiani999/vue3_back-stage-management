@@ -39,7 +39,15 @@
         </el-table>
       </el-form-item>
       <el-form-item class="ma-10">
-        <el-button type="primary">保存</el-button>
+        <el-button
+          type="primary"
+          :disabled="
+            !formDataList.attrName ||
+            !formDataList.attrValueList.some((attrVal) => attrVal.valueName)
+          "
+          @click="saveAata"
+          >保存</el-button
+        >
         <el-button @click="isShowList">取消</el-button>
       </el-form-item>
     </el-form>
@@ -55,13 +63,22 @@ export default {
 <script lang="ts" setup>
 import { Delete, Plus } from "@element-plus/icons-vue";
 import { ref, nextTick, reactive } from "vue";
+import { getAttrInfoApi } from "@/api/attr";
+import { useCategorySelectorStore } from "@/stores/categoryselector";
+import type {
+  saveAttrItem,
+  SaveAttrValueList,
+} from "@/api/product/model/AttrModel";
+import { ElMessage } from "element-plus";
 
+const SelectorStore = useCategorySelectorStore();
 const emit = defineEmits(["setShowList"]);
 const isShowList = () => {
   emit("setShowList", true);
 };
 const inputRef = ref();
-const formDataList = reactive({
+// 收集的表单数据
+const formDataList = reactive<SaveAttrValueList>({
   attrName: "",
   attrValueList: [],
 });
@@ -76,20 +93,20 @@ const addAttrValue = () => {
   });
 };
 //失去光标，展示div
-const isShowDiv = (row, index: number) => {
+const isShowDiv = (row: saveAttrItem, index: number) => {
   row.isEdit = false;
   if (!row.valueName) {
     formDataList.attrValueList.splice(index, 1);
   }
 };
 //key-enter 展示div
-const keyShow = (row) => {
+const keyShow = (row: saveAttrItem) => {
   if (row.valueName) {
     row.isEdit = false;
   }
 };
 //点击文本，显示Input
-const isShowInput = (row) => {
+const isShowInput = (row: saveAttrItem) => {
   row.isEdit = true;
   nextTick(() => {
     inputRef.value.focus();
@@ -97,8 +114,21 @@ const isShowInput = (row) => {
 };
 
 //点击删除按钮
-const deleteattrVal = (index) => {
+const deleteattrVal = (index: number) => {
   formDataList.attrValueList.splice(index, 1);
+};
+//点击保存发送请求
+//添加和修改用同一个接口
+const saveAata = async () => {
+  await getAttrInfoApi({
+    ...formDataList,
+    categoryId: SelectorStore.CategorySelectorId3 as number,
+    categoryLevel: 3,
+  });
+  //返回上个组件
+  isShowList();
+  // 提示用户添加成功
+  ElMessage.success("添加属性成功");
 };
 </script>
 

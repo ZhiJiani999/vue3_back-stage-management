@@ -2,7 +2,7 @@ import service from "@/utils/request";
 import type {
   AttrParams,
   AttrItemList,
-  saveItemList,
+  SaveAttrValueItem,
 } from "./product/model/AttrModel";
 enum Api {
   attrInfoListUrl = "/admin/product/attrInfoList",
@@ -28,6 +28,6 @@ export const getAttrListApi = ({
  * @param data
  * @returns
  */
-export const getAttrInfoApi = (data: saveItemList) => {
+export const getAttrInfoApi = (data: SaveAttrValueItem) => {
   return service.post<any, null>(Api.saveAttrInfoUrl, data);
 };

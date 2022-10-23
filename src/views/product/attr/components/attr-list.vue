@@ -18,7 +18,7 @@
         </template>
       </el-table-column>
       <el-table-column label="操作">
-        <template #default="scope">
+        <template>
           <el-button size="small" type="warning" :icon="EditPen"></el-button>
           <el-button
             size="small"
